@@ -5,7 +5,7 @@ jdk:
     - oraclejdk8
 
 script:
-    - ./gradlew cucumber
+    - ./gradlew check
     - ./gradlew jacocoTestReport
 
 after_success:
