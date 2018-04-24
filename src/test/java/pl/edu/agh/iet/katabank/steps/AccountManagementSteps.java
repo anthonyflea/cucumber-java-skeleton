@@ -3,6 +3,7 @@ package pl.edu.agh.iet.katabank.steps;
 import cucumber.api.java8.En;
 import pl.edu.agh.iet.katabank.*;
 
+import java.math.BigDecimal;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,9 +43,7 @@ public class AccountManagementSteps implements En {
                 () -> assertThat(customerAccounts)
                         .containsExactlyInAnyOrder(firstAccount, secondAccount));
 
-        Given("^a customer wants to open an account$", () -> {
-            customer = new Customer();
-        });
+        Given("^a customer wants to open an account$", () -> customer = new Customer());
 
         When("^his account is created$", () -> {
             firstAccount = new Account(customer);
@@ -55,9 +54,8 @@ public class AccountManagementSteps implements En {
             customerAccounts = bank.getAccountsForCustomer(customer);
             assertThat(customerAccounts).contains(firstAccount);
         });
-        And("^the balance on this account is (\\d+)$", (Integer arg0) -> {
-            assertThat(firstAccount.getBalance()).isEqualByComparingTo("0");
-        });
+        And("^the balance on this account is (\\d+)$",
+                (Integer balance) -> assertThat(firstAccount.getBalance()).isEqualByComparingTo(new BigDecimal(balance)));
 
     }
 }
