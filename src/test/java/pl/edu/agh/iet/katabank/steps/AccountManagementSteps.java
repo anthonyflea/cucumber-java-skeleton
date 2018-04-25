@@ -63,7 +63,7 @@ public class AccountManagementSteps implements En {
             firstAccount.setBalance(new BigDecimal(initialBalance));
         });
 
-        When("^customer withdraws (\\d+) to this account$", (Integer amount) -> firstAccount.withdraw(new BigDecimal(amount)));
+        When("^customer withdraws (\\d+) from this account$", (Integer amount) -> firstAccount.withdraw(new BigDecimal(amount)));
 
         Then("^balance on this account is (\\d+)$",
                 (Integer balance) -> assertThat(firstAccount.getBalance()).isEqualByComparingTo(new BigDecimal(balance)));

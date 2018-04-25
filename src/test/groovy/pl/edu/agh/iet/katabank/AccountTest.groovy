@@ -19,19 +19,39 @@ class AccountTest extends Specification{
 
     def "try to withdraw a negative amount"() {
         when:
-        account.withdraw(new BigDecimal(-1))
+        def amount = -1.00
+        account.withdraw(amount)
 
         then:
         IllegalArgumentException ex = thrown()
-        ex.message == 'The amount to withdraw is negative.'
+        ex.message == 'Incorrect amount to withdraw: ' + amount
+    }
+
+    def "try to withdraw zero"() {
+        when:
+        def amount = 0.00
+        account.withdraw(amount)
+
+        then:
+        IllegalArgumentException ex = thrown()
+        ex.message == 'Incorrect amount to withdraw: ' + amount
+    }
+
+    def "try to withdraw a null"() {
+        when:
+        account.withdraw(null)
+
+        then:
+        IllegalArgumentException ex = thrown()
+        ex.message == 'Incorrect amount to withdraw: ' + null
     }
 
     def "try to withdraw amount greater than account balance"() {
         setup:
-        account.setBalance(new BigDecimal(100))
+        account.setBalance(100.0)
 
         when:
-        account.withdraw(new BigDecimal(101))
+        account.withdraw(100.01)
 
         then:
         IllegalArgumentException ex = thrown()

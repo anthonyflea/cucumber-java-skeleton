@@ -17,5 +17,5 @@ Feature: Bank Management
 
   Scenario: withdraw money
     Given balance on the account is 100
-    When customer withdraws 90 to this account
+    When customer withdraws 90 from this account
     Then balance on the account is 10
