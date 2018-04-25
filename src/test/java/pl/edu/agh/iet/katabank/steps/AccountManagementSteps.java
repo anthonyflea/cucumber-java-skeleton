@@ -54,6 +54,7 @@ public class AccountManagementSteps implements En {
             customerAccounts = bank.getAccountsForCustomer(customer);
             assertThat(customerAccounts).contains(firstAccount);
         });
+      
         And("^the balance on this account is (\\d+)$",
                 (Integer balance) -> assertThat(firstAccount.getBalance()).isEqualByComparingTo(new BigDecimal(balance)));
 
