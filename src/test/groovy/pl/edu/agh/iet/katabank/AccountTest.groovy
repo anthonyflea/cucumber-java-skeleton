@@ -16,4 +16,25 @@ class AccountTest extends Specification{
         where:
         anotherAccount = new Account(customer)
     }
+
+    def "try to withdraw a negative amount"() {
+        when:
+        account.withdraw(new BigDecimal(-1))
+
+        then:
+        IllegalArgumentException ex = thrown()
+        ex.message == 'The amount to withdraw is negative.'
+    }
+
+    def "try to withdraw amount greater than account balance"() {
+        setup:
+        account.setBalance(new BigDecimal(100))
+
+        when:
+        account.withdraw(new BigDecimal(101))
+
+        then:
+        IllegalArgumentException ex = thrown()
+        ex.message == 'The amount to withdraw is greater than account balance.'
+    }
 }
