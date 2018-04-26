@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThat
 
 class AccountTest extends Specification {
 
+    private static final String ERROR_MESSAGE = 'Incorrect amount to process: '
+
     private final Customer customer = new Customer()
     private final Account account = new Account(customer)
 
@@ -24,7 +26,7 @@ class AccountTest extends Specification {
 
         then:
         IllegalArgumentException ex = thrown()
-        ex.message == 'Incorrect amount to withdraw: ' + amount
+        ex.message == ERROR_MESSAGE + amount
     }
 
     def "try to withdraw zero"() {
@@ -34,7 +36,7 @@ class AccountTest extends Specification {
 
         then:
         IllegalArgumentException ex = thrown()
-        ex.message == 'Incorrect amount to withdraw: ' + amount
+        ex.message == ERROR_MESSAGE + amount
     }
 
     def "try to withdraw a null"() {
@@ -43,7 +45,7 @@ class AccountTest extends Specification {
 
         then:
         IllegalArgumentException ex = thrown()
-        ex.message == 'Incorrect amount to withdraw: ' + null
+        ex.message == ERROR_MESSAGE + null
     }
 
     def "try to withdraw amount greater than account balance"() {
@@ -65,7 +67,7 @@ class AccountTest extends Specification {
 
         then:
         IllegalArgumentException ex = thrown()
-        ex.message == 'Incorrect amount to withdraw: ' + amount
+        ex.message == ERROR_MESSAGE + amount
     }
 
     def "try to deposit zero"() {
@@ -75,7 +77,7 @@ class AccountTest extends Specification {
 
         then:
         IllegalArgumentException ex = thrown()
-        ex.message == 'Incorrect amount to withdraw: ' + amount
+        ex.message == ERROR_MESSAGE + amount
     }
 
     def "try to deposit a null"() {
@@ -84,6 +86,6 @@ class AccountTest extends Specification {
 
         then:
         IllegalArgumentException ex = thrown()
-        ex.message == 'Incorrect amount to withdraw: ' + null
+        ex.message == ERROR_MESSAGE + null
     }
 }

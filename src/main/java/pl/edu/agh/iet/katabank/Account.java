@@ -56,7 +56,7 @@ public class Account {
 
     private void checkValidAmount(BigDecimal amount) {
         if (amount == null || amount.signum() <= 0) {
-            throw new IllegalArgumentException("Incorrect amount to withdraw: "
+            throw new IllegalArgumentException("Incorrect amount to process: "
                     + (amount == null ? null : amount.toString()));
         }
     }
