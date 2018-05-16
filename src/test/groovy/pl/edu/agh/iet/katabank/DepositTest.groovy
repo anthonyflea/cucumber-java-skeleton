@@ -21,19 +21,31 @@ class DepositTest extends Specification {
     def "two deposits created for the same account are not equal"() {
         when:
         amount = 50
-        account.setBalance(200)
+        account.setBalance(200.0)
         def firstDeposit = new Deposit(account, amount)
         def secondDeposit = new Deposit(account, amount)
 
         then:
-        !firstDeposit.equals(secondDeposit)
+        assertThat(firstDeposit).isNotEqualTo(secondDeposit)
+    }
+
+    def "deposit created has the same owner as connected account"() {
+        when:
+        account.setBalance(amount)
+        deposit = new Deposit(account, amount)
+
+        then:
+        assertThat(deposit.getOwner()).isEqualTo(account.getOwner())
+
+        where:
+        amount = 10.0
     }
 
     def "try to open a deposit with a negative balance"() {
         when:
         amount = -1
-        account.setBalance(100)
-        def deposit = new Deposit(account, amount)
+        account.setBalance(100.0)
+        deposit = new Deposit(account, amount)
 
         then:
         IllegalArgumentException ex = thrown()
@@ -43,8 +55,8 @@ class DepositTest extends Specification {
     def "try to open a deposit with a zero balance"() {
         when:
         amount = 0
-        account.setBalance(100)
-        def deposit = new Deposit(account, amount)
+        account.setBalance(100.0)
+        deposit = new Deposit(account, amount)
 
         then:
         IllegalArgumentException ex = thrown()
@@ -55,7 +67,7 @@ class DepositTest extends Specification {
         when:
         amount = 100
         account.setBalance(amount - 1)
-        def deposit = new Deposit(account, amount)
+        deposit = new Deposit(account, amount)
 
         then:
         IllegalArgumentException ex = thrown()
@@ -65,7 +77,7 @@ class DepositTest extends Specification {
     def "try to open a deposit for a null amount"() {
         when:
         account.setBalance(100.0)
-        def deposit = new Deposit(account, amount)
+        deposit = new Deposit(account, amount)
 
         then:
         IllegalArgumentException ex = thrown()
