@@ -1,4 +1,6 @@
-package pl.edu.agh.iet.katabank;
+package pl.edu.agh.iet.katabank.bankproduct;
+
+import pl.edu.agh.iet.katabank.Customer;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -8,11 +10,11 @@ import java.util.UUID;
 public class Deposit implements BankProduct {
 
     private static final int DEFAULT_DURATION = 12;
+    private static final String INCORRECT_AMOUNT_MESSAGE = "Incorrect initial balance to open deposit: ";
 
     private BigDecimal balance;
     private Account connectedAccount;
     private final UUID id;
-    private final String INCORRECT_AMOUNT_MESSAGE = "Incorrect initial balance to open deposit: ";
     private final LocalDate openDate;
     private final int durationInMonths;
     private boolean open;
@@ -70,7 +72,7 @@ public class Deposit implements BankProduct {
         return Objects.hash(id);
     }
 
-    public void finishDeposit(LocalDate date) {
+    public void closeDeposit(LocalDate date) {
         if (date == null || date.isBefore(this.openDate.plusMonths(durationInMonths))) {
             throw new RuntimeException("Cannot close deposit on date: " + date);
         }

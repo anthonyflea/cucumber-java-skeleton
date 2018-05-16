@@ -1,12 +1,12 @@
 package pl.edu.agh.iet.katabank.steps;
 
 import cucumber.api.java8.En;
-import pl.edu.agh.iet.katabank.Account;
+import pl.edu.agh.iet.katabank.bankproduct.Account;
 import pl.edu.agh.iet.katabank.Bank;
-import pl.edu.agh.iet.katabank.BankProductsRepository;
+import pl.edu.agh.iet.katabank.repository.BankProductsRepository;
 import pl.edu.agh.iet.katabank.Customer;
-import pl.edu.agh.iet.katabank.Deposit;
-import pl.edu.agh.iet.katabank.InMemoryBankProductsRepository;
+import pl.edu.agh.iet.katabank.bankproduct.Deposit;
+import pl.edu.agh.iet.katabank.repository.InMemoryBankProductsRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -144,7 +144,7 @@ public class AccountManagementSteps implements En {
         });
 
         Then("^the money is transferred back to the account the funds were taken from$", () -> {
-            firstDeposit.finishDeposit(date);
+            firstDeposit.closeDeposit(date);
             assertThat(firstAccount.getBalance()).isGreaterThanOrEqualTo(amount);
             assertThat(firstDeposit.getBalance()).isZero();
             assertThat(firstDeposit.isOpen()).isFalse();

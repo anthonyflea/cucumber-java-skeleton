@@ -1,5 +1,6 @@
-package pl.edu.agh.iet.katabank
+package pl.edu.agh.iet.katabank.bankproduct
 
+import pl.edu.agh.iet.katabank.Customer
 import spock.lang.Specification
 
 import java.time.LocalDate
@@ -101,7 +102,7 @@ class DepositTest extends Specification {
         account.setBalance(amount)
         def closeDate = openDate.plusMonths(durationInMonths - 1)
         deposit = new Deposit(account, amount, openDate, durationInMonths)
-        deposit.finishDeposit(closeDate)
+        deposit.closeDeposit(closeDate)
 
         then:
         RuntimeException ex = thrown()
@@ -118,7 +119,7 @@ class DepositTest extends Specification {
         account.setBalance(amount)
         def closeDate = null
         deposit = new Deposit(account, amount, openDate, durationInMonths)
-        deposit.finishDeposit(closeDate)
+        deposit.closeDeposit(closeDate)
 
         then:
         RuntimeException ex = thrown()
@@ -135,7 +136,7 @@ class DepositTest extends Specification {
         account.setBalance(amount)
         def closeDate = openDate.plusMonths(durationInMonths)
         deposit = new Deposit(account, amount, openDate, durationInMonths)
-        deposit.finishDeposit(closeDate)
+        deposit.closeDeposit(closeDate)
 
         then:
         assertThat(deposit.getBalance()).isZero()
@@ -151,7 +152,7 @@ class DepositTest extends Specification {
         account.setBalance(amount)
         def closeDate = openDate.plusMonths(durationInMonths)
         deposit = new Deposit(account, amount, openDate, durationInMonths)
-        deposit.finishDeposit(closeDate)
+        deposit.closeDeposit(closeDate)
 
         then:
         assertThat(deposit.isOpen()).isFalse()
@@ -167,7 +168,7 @@ class DepositTest extends Specification {
         account.setBalance(amount)
         def closeDate = openDate.plusMonths(durationInMonths).plusDays(1)
         deposit = new Deposit(account, amount, openDate, durationInMonths)
-        deposit.finishDeposit(closeDate)
+        deposit.closeDeposit(closeDate)
 
         then:
         assertThat(deposit.isOpen()).isFalse()
