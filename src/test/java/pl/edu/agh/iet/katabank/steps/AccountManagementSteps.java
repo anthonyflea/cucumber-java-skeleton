@@ -4,6 +4,7 @@ import cucumber.api.java8.En;
 import pl.edu.agh.iet.katabank.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,6 +18,7 @@ public class AccountManagementSteps implements En {
     private Set<Account> customerAccounts;
     private Deposit firstDeposit;
     private Set<Deposit> customerDeposits;
+    private LocalDate date;
 
     public AccountManagementSteps() {
 
@@ -111,7 +113,7 @@ public class AccountManagementSteps implements En {
             firstDeposit = bank.openDeposit(customer, firstAccount, new BigDecimal(depositBalance));
             bankProductsRepository.addDeposit(firstDeposit);
         });
- ;
+
         Then("^he owns a deposit with balance (\\d+)$", (Integer depositBalance) -> {
             customerDeposits = bank.getDepositsForCustomer(customer);
             assertThat(customerDeposits).contains(firstDeposit);
@@ -120,6 +122,24 @@ public class AccountManagementSteps implements En {
 
         And("^the account has balance (\\d+)$", (Integer accountNewBalance) -> {
             assertThat(firstAccount.getBalance()).isEqualByComparingTo(new BigDecimal(accountNewBalance));
+        });
+
+        Given("^a customer opened a deposit for a period of one year$", () -> {
+            firstAccount.setBalance(new BigDecimal("10"));
+            date = LocalDate.now();
+            firstDeposit = new Deposit(firstAccount, new BigDecimal("10"), date, 12);
+        });
+
+        When("^one year has passed$", () -> {
+            assertThat(firstAccount.getBalance()).isLessThan(new BigDecimal("10"));
+            assertThat(firstDeposit.getBalance()).isEqualByComparingTo(new BigDecimal("10"));
+            date = date.plusMonths(12);
+        });
+
+        Then("^the money is transferred back to the account the funds were taken from$", () -> {
+            firstDeposit.finishDeposit(date);
+            assertThat(firstAccount.getBalance()).isGreaterThanOrEqualTo(new BigDecimal("10"));
+            assertThat(firstDeposit.getBalance()).isZero();
         });
 
     }
