@@ -11,6 +11,8 @@ public class Deposit implements BankProduct {
     private Account connectedAccount;
     private final UUID id;
     private final String INCORRECT_AMOUNT_MESSAGE = "Incorrect initial balance to open deposit: ";
+    private final LocalDate openDate;
+    private final int durationInMonths;
 
     public Deposit (Account account, BigDecimal initialBalance) {
         try {
@@ -22,6 +24,8 @@ public class Deposit implements BankProduct {
         this.balance = initialBalance;
         this.connectedAccount = account;
         this.id = UUID.randomUUID();
+        this.openDate = LocalDate.now();
+        this.durationInMonths = 12;
     }
 
     public Deposit(Account account, BigDecimal initialBalance, LocalDate openDate, int durationInMonths) {
@@ -34,6 +38,8 @@ public class Deposit implements BankProduct {
         this.balance = initialBalance;
         this.connectedAccount = account;
         this.id = UUID.randomUUID();
+        this.openDate = openDate;
+        this.durationInMonths = durationInMonths;
     }
 
     public Account getConnectedAccount() {
@@ -63,6 +69,11 @@ public class Deposit implements BankProduct {
     }
 
     public void finishDeposit(LocalDate date) {
-
+        if(openDate.plusMonths(durationInMonths).isBefore(date)){
+           throw new RuntimeException("Cannot close deposit on date: " + date);
+        }
+        BigDecimal closeBalance = this.balance;
+        this.balance = BigDecimal.ZERO;
+        this.connectedAccount.deposit(closeBalance);
     }
 }
