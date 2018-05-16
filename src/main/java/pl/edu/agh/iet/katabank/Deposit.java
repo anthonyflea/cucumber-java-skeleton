@@ -1,6 +1,7 @@
 package pl.edu.agh.iet.katabank;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -15,7 +16,19 @@ public class Deposit implements BankProduct {
         try {
             account.withdraw(initialBalance);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(INCORRECT_AMOUNT_MESSAGE + initialBalance);
+            throw new IllegalArgumentException(INCORRECT_AMOUNT_MESSAGE + initialBalance, e);
+        }
+
+        this.balance = initialBalance;
+        this.connectedAccount = account;
+        this.id = UUID.randomUUID();
+    }
+
+    public Deposit(Account account, BigDecimal initialBalance, LocalDate openDate, int durationInMonths) {
+        try {
+            account.withdraw(initialBalance);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(INCORRECT_AMOUNT_MESSAGE + initialBalance, e);
         }
 
         this.balance = initialBalance;
@@ -47,5 +60,9 @@ public class Deposit implements BankProduct {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public void finishDeposit(LocalDate date) {
+
     }
 }
