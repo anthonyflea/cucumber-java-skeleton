@@ -125,6 +125,7 @@ public class AccountManagementSteps implements En {
         });
 
         Given("^a customer opened a deposit for a period of one year$", () -> {
+            firstAccount = new Account(customer);
             firstAccount.setBalance(new BigDecimal("10"));
             date = LocalDate.now();
             firstDeposit = new Deposit(firstAccount, new BigDecimal("10"), date, 12);
