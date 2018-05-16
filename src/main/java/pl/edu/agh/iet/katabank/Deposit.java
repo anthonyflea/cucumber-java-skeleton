@@ -7,25 +7,18 @@ import java.util.UUID;
 
 public class Deposit implements BankProduct {
 
+    private static final int DEFAULT_DURATION = 12;
+
     private BigDecimal balance;
     private Account connectedAccount;
     private final UUID id;
     private final String INCORRECT_AMOUNT_MESSAGE = "Incorrect initial balance to open deposit: ";
     private final LocalDate openDate;
     private final int durationInMonths;
+    private boolean open;
 
-    public Deposit (Account account, BigDecimal initialBalance) {
-        try {
-            account.withdraw(initialBalance);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(INCORRECT_AMOUNT_MESSAGE + initialBalance, e);
-        }
-
-        this.balance = initialBalance;
-        this.connectedAccount = account;
-        this.id = UUID.randomUUID();
-        this.openDate = LocalDate.now();
-        this.durationInMonths = 12;
+    public Deposit(Account account, BigDecimal initialBalance) {
+        this(account, initialBalance, LocalDate.now(), DEFAULT_DURATION);
     }
 
     public Deposit(Account account, BigDecimal initialBalance, LocalDate openDate, int durationInMonths) {
@@ -40,6 +33,7 @@ public class Deposit implements BankProduct {
         this.id = UUID.randomUUID();
         this.openDate = openDate;
         this.durationInMonths = durationInMonths;
+        this.open = true;
     }
 
     public Account getConnectedAccount() {
@@ -48,6 +42,14 @@ public class Deposit implements BankProduct {
 
     public BigDecimal getBalance() {
         return this.balance;
+    }
+
+    public LocalDate getOpenDate() {
+        return this.openDate;
+    }
+
+    public boolean isOpen() {
+        return this.open;
     }
 
     @Override
@@ -69,11 +71,12 @@ public class Deposit implements BankProduct {
     }
 
     public void finishDeposit(LocalDate date) {
-        if(openDate.plusMonths(durationInMonths).isBefore(date)){
-           throw new RuntimeException("Cannot close deposit on date: " + date);
+        if (date == null || date.isBefore(this.openDate.plusMonths(durationInMonths))) {
+            throw new RuntimeException("Cannot close deposit on date: " + date);
         }
         BigDecimal closeBalance = this.balance;
         this.balance = BigDecimal.ZERO;
         this.connectedAccount.deposit(closeBalance);
+        this.open = false;
     }
 }
