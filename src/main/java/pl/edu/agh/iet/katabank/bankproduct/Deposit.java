@@ -2,6 +2,7 @@ package pl.edu.agh.iet.katabank.bankproduct;
 
 import pl.edu.agh.iet.katabank.Customer;
 import pl.edu.agh.iet.katabank.bankproduct.deposittype.DepositType;
+import pl.edu.agh.iet.katabank.bankproduct.deposittype.MonthlyDepositType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -15,6 +16,8 @@ public class Deposit implements BankProduct {
     private static final String CANNOT_CLOSE_ALREADY_CLOSED_DEPOSIT_MESSAGE = "Cannot close already closed deposit";
     private static final String CANNOT_CLOSE_DEPOSIT_ON_DATE_MESSAGE = "Cannot close deposit on date: ";
 
+    private final BigDecimal interestRate;
+
     private BigDecimal balance;
     private Account connectedAccount;
     private final UUID id;
@@ -27,6 +30,10 @@ public class Deposit implements BankProduct {
     }
 
     public Deposit(Account account, BigDecimal initialBalance, LocalDate openDate, int durationInMonths) {
+        this(account, initialBalance, openDate, new MonthlyDepositType(durationInMonths, BigDecimal.ZERO));
+    }
+
+    public Deposit(Account account, BigDecimal initialBalance, LocalDate openDate, DepositType depositType) {
         try {
             account.withdraw(initialBalance);
         } catch (IllegalArgumentException e) {
@@ -37,12 +44,9 @@ public class Deposit implements BankProduct {
         this.connectedAccount = account;
         this.id = UUID.randomUUID();
         this.openDate = openDate;
-        this.durationInMonths = durationInMonths;
+        this.durationInMonths = depositType.getDuration();
+        this.interestRate = depositType.getYearlyInterestRate();
         this.open = true;
-    }
-
-    public Deposit(Account firstAccount, BigDecimal amount, LocalDate date, DepositType depositType) {
-        this(firstAccount, amount);
     }
 
     public Account getConnectedAccount() {
@@ -88,11 +92,13 @@ public class Deposit implements BankProduct {
         }
         BigDecimal closeBalance = this.balance;
         this.balance = BigDecimal.ZERO;
-        this.connectedAccount.deposit(closeBalance);
+        BigDecimal balanceWithInterest
+                = closeBalance.add(closeBalance.multiply(interestRate.divide(new BigDecimal(100)).multiply(new BigDecimal(durationInMonths).divide(new BigDecimal(12)))));
+        this.connectedAccount.deposit(balanceWithInterest);
         this.open = false;
     }
 
     public int getDuration() {
-        return 12;
+        return durationInMonths;
     }
 }
