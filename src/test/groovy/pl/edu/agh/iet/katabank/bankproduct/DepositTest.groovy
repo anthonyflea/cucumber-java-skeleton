@@ -10,7 +10,8 @@ import static org.assertj.core.api.Assertions.assertThat
 class DepositTest extends Specification {
 
     private static final String ERROR_MESSAGE_OPEN_DEPOSIT = 'Incorrect initial balance to open deposit: '
-    private static final String ERROR_MESSAGE_CLOSE_DEPOSIT = 'Cannot close deposit on date: '
+    private static final String ERROR_MESSAGE_CLOSE_DEPOSIT_ON_DATE = 'Cannot close deposit on date: '
+    private static final String ERROR_MESSAGE_CLOSE_DEPOSIT_ALREADY_CLOSED = 'Cannot close already closed deposit'
 
     private final Customer customer = new Customer()
     private final Account account = new Account(customer)
@@ -106,7 +107,7 @@ class DepositTest extends Specification {
 
         then:
         RuntimeException ex = thrown()
-        ex.message == ERROR_MESSAGE_CLOSE_DEPOSIT + closeDate
+        ex.message == ERROR_MESSAGE_CLOSE_DEPOSIT_ON_DATE + closeDate
 
         where:
         amount = 10.0
@@ -123,7 +124,7 @@ class DepositTest extends Specification {
 
         then:
         RuntimeException ex = thrown()
-        ex.message == ERROR_MESSAGE_CLOSE_DEPOSIT + closeDate
+        ex.message == ERROR_MESSAGE_CLOSE_DEPOSIT_ON_DATE + closeDate
 
         where:
         amount = 10.0
@@ -189,6 +190,25 @@ class DepositTest extends Specification {
 
         where:
         amount = 10.0
+    }
+
+    def "deposit already closed can't be closed"() {
+        when:
+        account.setBalance(amount)
+        def closeDate = openDate.plusMonths(durationInMonths)
+        deposit = new Deposit(account, amount, openDate, durationInMonths)
+        deposit.closeDeposit(closeDate)
+        deposit.closeDeposit(closeDate.plusDays(1))
+
+        then:
+        assertThat(deposit.isOpen()).isFalse()
+        RuntimeException ex = thrown()
+        ex.message == ERROR_MESSAGE_CLOSE_DEPOSIT_ALREADY_CLOSED
+
+        where:
+        amount = 10.0
+        openDate = LocalDate.now()
+        durationInMonths = 12
     }
 
 }

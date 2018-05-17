@@ -10,7 +10,9 @@ import java.util.UUID;
 public class Deposit implements BankProduct {
 
     private static final int DEFAULT_DURATION = 12;
-    private static final String INCORRECT_AMOUNT_MESSAGE = "Incorrect initial balance to open deposit: ";
+    private static final String INCORRECT_INITIAL_BALANCE_MESSAGE = "Incorrect initial balance to open deposit: ";
+    private static final String CANNOT_CLOSE_ALREADY_CLOSED_DEPOSIT_MESSAGE = "Cannot close already closed deposit";
+    private static final String CANNOT_CLOSE_DEPOSIT_ON_DATE_MESSAGE = "Cannot close deposit on date: ";
 
     private BigDecimal balance;
     private Account connectedAccount;
@@ -27,7 +29,7 @@ public class Deposit implements BankProduct {
         try {
             account.withdraw(initialBalance);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(INCORRECT_AMOUNT_MESSAGE + initialBalance, e);
+            throw new IllegalArgumentException(INCORRECT_INITIAL_BALANCE_MESSAGE + initialBalance, e);
         }
 
         this.balance = initialBalance;
@@ -73,8 +75,11 @@ public class Deposit implements BankProduct {
     }
 
     public void closeDeposit(LocalDate date) {
+        if (!isOpen()) {
+            throw new RuntimeException(CANNOT_CLOSE_ALREADY_CLOSED_DEPOSIT_MESSAGE);
+        }
         if (date == null || date.isBefore(this.openDate.plusMonths(durationInMonths))) {
-            throw new RuntimeException("Cannot close deposit on date: " + date);
+            throw new RuntimeException(CANNOT_CLOSE_DEPOSIT_ON_DATE_MESSAGE + date);
         }
         BigDecimal closeBalance = this.balance;
         this.balance = BigDecimal.ZERO;
