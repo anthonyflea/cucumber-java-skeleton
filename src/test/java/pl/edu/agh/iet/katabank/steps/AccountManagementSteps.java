@@ -1,11 +1,11 @@
 package pl.edu.agh.iet.katabank.steps;
 
 import cucumber.api.java8.En;
-import pl.edu.agh.iet.katabank.bankproduct.Account;
 import pl.edu.agh.iet.katabank.Bank;
-import pl.edu.agh.iet.katabank.repository.BankProductsRepository;
 import pl.edu.agh.iet.katabank.Customer;
+import pl.edu.agh.iet.katabank.bankproduct.Account;
 import pl.edu.agh.iet.katabank.bankproduct.Deposit;
+import pl.edu.agh.iet.katabank.repository.BankProductsRepository;
 import pl.edu.agh.iet.katabank.repository.InMemoryBankProductsRepository;
 
 import java.math.BigDecimal;
@@ -25,6 +25,7 @@ public class AccountManagementSteps implements En {
     private Set<Deposit> customerDeposits;
     private LocalDate date;
     private BigDecimal amount;
+    private DepositType depositType;
 
     public AccountManagementSteps() {
 
@@ -148,6 +149,27 @@ public class AccountManagementSteps implements En {
             assertThat(firstAccount.getBalance()).isGreaterThanOrEqualTo(amount);
             assertThat(firstDeposit.getBalance()).isZero();
             assertThat(firstDeposit.isOpen()).isFalse();
+        });
+
+        Given("^bank offers a deposit for a period of (\\d+) months with yearly interest rate (\\d+)%$",
+                (Integer durationInMonths, Integer interestRate)
+                        -> depositType = new MonthlyDepositType(durationInMonths, new BigDecimal(interestRate)));
+
+        And("^customer opens that deposit with funds (\\d+)$", (Integer initialBalance) -> {
+            amount = new BigDecimal(initialBalance);
+            firstAccount = new Account(customer);
+            firstAccount.setBalance(amount);
+            date = LocalDate.now();
+            firstDeposit = new Deposit(firstAccount, amount, date, depositType);
+        });
+
+        When("^a termination date has passed$", () -> {
+            date = date.plusMonths(firstDeposit.getDuration());
+            firstDeposit.closeDeposit(date);
+        });
+
+        Then("^(\\d+) is transferred back to his account$", (Integer newBalance) -> {
+            assertThat(firstAccount.getBalance()).isEqualByComparingTo(new BigDecimal(newBalance));
         });
 
     }

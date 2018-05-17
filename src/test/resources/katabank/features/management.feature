@@ -42,3 +42,9 @@ Feature: Bank Management
     Given a customer opened a deposit for a period of one year
     When one year has passed
     Then the money is transferred back to the account the funds were taken from
+
+  Scenario: Interest rate
+    Given bank offers a deposit for a period of 6 months with yearly interest rate 10%
+    And customer opens that deposit with funds 100
+    When a termination date has passed
+    Then 105 is transferred back to his account
