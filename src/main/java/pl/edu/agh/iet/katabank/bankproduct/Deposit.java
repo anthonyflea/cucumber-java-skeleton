@@ -1,6 +1,7 @@
 package pl.edu.agh.iet.katabank.bankproduct;
 
 import pl.edu.agh.iet.katabank.Customer;
+import pl.edu.agh.iet.katabank.bankproduct.deposittype.DepositType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,6 +39,10 @@ public class Deposit implements BankProduct {
         this.openDate = openDate;
         this.durationInMonths = durationInMonths;
         this.open = true;
+    }
+
+    public Deposit(Account firstAccount, BigDecimal amount, LocalDate date, DepositType depositType) {
+        this(firstAccount, amount);
     }
 
     public Account getConnectedAccount() {
@@ -85,5 +90,9 @@ public class Deposit implements BankProduct {
         this.balance = BigDecimal.ZERO;
         this.connectedAccount.deposit(closeBalance);
         this.open = false;
+    }
+
+    public int getDuration() {
+        return 12;
     }
 }

@@ -5,6 +5,8 @@ import pl.edu.agh.iet.katabank.Bank;
 import pl.edu.agh.iet.katabank.Customer;
 import pl.edu.agh.iet.katabank.bankproduct.Account;
 import pl.edu.agh.iet.katabank.bankproduct.Deposit;
+import pl.edu.agh.iet.katabank.bankproduct.deposittype.DepositType;
+import pl.edu.agh.iet.katabank.bankproduct.deposittype.MonthlyDepositType;
 import pl.edu.agh.iet.katabank.repository.BankProductsRepository;
 import pl.edu.agh.iet.katabank.repository.InMemoryBankProductsRepository;
 
