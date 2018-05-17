@@ -3,6 +3,7 @@ Feature: Bank Management
   Background:
     Given there is a bank with account
     Given there is a customer
+    Given there is a default deposit type
 
   Scenario: list accounts
     Given a customer has two accounts open

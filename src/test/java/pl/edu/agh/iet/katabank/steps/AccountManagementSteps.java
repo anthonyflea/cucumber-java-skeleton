@@ -39,6 +39,9 @@ public class AccountManagementSteps implements En {
         Given("^there is a customer$",
                 () -> customer = new Customer());
 
+        Given("^there is a default deposit type$", ()
+                -> depositType = new MonthlyDepositType(12, BigDecimal.ONE));
+
         Given("^a customer has two accounts open$", () -> {
             // create first account for customer
             firstAccount = new Account(customer);
@@ -119,7 +122,7 @@ public class AccountManagementSteps implements En {
         });
 
         When("^he opens a deposit with balance (\\d+)$", (Integer depositBalance) -> {
-            firstDeposit = bank.openDeposit(customer, firstAccount, new BigDecimal(depositBalance));
+            firstDeposit = bank.openDeposit(customer, firstAccount, new BigDecimal(depositBalance), depositType);
             bankProductsRepository.addDeposit(firstDeposit);
         });
 
@@ -137,7 +140,7 @@ public class AccountManagementSteps implements En {
             amount = new BigDecimal("10");
             firstAccount.setBalance(amount);
             date = LocalDate.now();
-            firstDeposit = new Deposit(firstAccount, amount, date, 12);
+            firstDeposit = new Deposit(firstAccount, amount, date, depositType);
         });
 
         When("^one year has passed$", () -> {
@@ -166,13 +169,14 @@ public class AccountManagementSteps implements En {
         });
 
         When("^a termination date has passed$", () -> {
-            date = date.plusMonths(firstDeposit.getDuration());
+            date = firstDeposit.getCloseDate();
             firstDeposit.closeDeposit(date);
         });
 
-        Then("^(\\d+) is transferred back to his account$", (Integer newBalance) -> {
-            assertThat(firstAccount.getBalance()).isEqualByComparingTo(new BigDecimal(newBalance));
-        });
+        Then("^(\\d+) is transferred back to his account$",
+                (Integer newBalance) ->
+                        assertThat(firstAccount.getBalance()).isEqualByComparingTo(new BigDecimal(newBalance)));
+
 
     }
 }
