@@ -8,6 +8,7 @@ import static java.math.RoundingMode.HALF_DOWN;
 
 public class MonthlyDepositType implements DepositType {
 
+    private static final String INCORRECT_DURATION_MESSAGE = "Duration for deposit type must be positive. Incorrect value: ";
     private static final BigDecimal ONE_HUNDRED_PERCENT = new BigDecimal(100);
     private static final BigDecimal TWELVE_MONTHS = new BigDecimal(12);
     private static final int MONEY_SCALE = 2;
@@ -18,6 +19,9 @@ public class MonthlyDepositType implements DepositType {
     private BigDecimal yearlyInterestRatePercent;
 
     public MonthlyDepositType(int durationInMonths, BigDecimal yearlyInterestRatePercent) {
+        if (durationInMonths <= 0) {
+            throw new RuntimeException(INCORRECT_DURATION_MESSAGE + durationInMonths);
+        }
         this.duration = durationInMonths;
         this.yearlyInterestRatePercent = yearlyInterestRatePercent;
     }
