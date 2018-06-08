@@ -2,7 +2,7 @@ Feature: Bank Management - Deposit
 
   Background:
     Given there is a bank with account and customer
-    Given there is a default deposit type
+    Given there is a default interest policy and deposit duration
 
   Scenario: Opening deposit
     Given a customer has an account with balance 100
@@ -22,7 +22,7 @@ Feature: Bank Management - Deposit
     Then 105 is transferred back to his account
 
   Scenario: Deposit new funds
-    Given there is a customer with a deposit opened
-    When he transfers new funds to the existing deposit
+    Given there is a customer with a deposit opened for period of 12 months with interest rate of 10% and 100 amount
+    When after 3 months he transfers new funds of amount 100 to the existing deposit with interest higher by 0.5%
     Then the interest rate for these funds is 0.5% greater than the original interest rate
-    And the interest for this funds is proportional to the deposit time left
+    And the interest for this funds is proportional to the deposit time left and equals 217.87

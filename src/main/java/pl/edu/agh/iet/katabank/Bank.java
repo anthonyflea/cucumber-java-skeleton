@@ -54,7 +54,7 @@ public class Bank {
         return bankProductsRepository.findDepositsForCustomer(customer);
     }
 
-    public Deposit openDeposit (Customer customer, Account account, BigDecimal depositBalance, DepositDurationDetails durationDetails, InterestPolicy depositPolicy){
+    public Deposit openDeposit(Customer customer, Account account, BigDecimal depositBalance, DepositDurationDetails durationDetails, InterestPolicy depositPolicy) {
         checkOperationNotAllowed(customer, account, ERROR_MESSAGE_OPEN_DEPOSIT);
         account.withdraw(depositBalance);
         Payment depositPayment = new DepositPayment(depositBalance, LocalDate.now());
