@@ -3,8 +3,8 @@ package pl.edu.agh.iet.katabank.repository
 import pl.edu.agh.iet.katabank.Customer
 import pl.edu.agh.iet.katabank.bankproduct.Account
 import pl.edu.agh.iet.katabank.bankproduct.Deposit
-import pl.edu.agh.iet.katabank.bankproduct.deposittype.DepositType
-import pl.edu.agh.iet.katabank.bankproduct.deposittype.MonthlyDepositType
+import pl.edu.agh.iet.katabank.bankproduct.interestpolicy.InterestPolicy
+import pl.edu.agh.iet.katabank.bankproduct.interestpolicy.MonthlyInterestPolicy
 import spock.lang.Specification
 
 import static org.assertj.core.api.Assertions.assertThat
@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat
 class InMemoryBankProductsRepositoryTest extends Specification {
 
     private final InMemoryBankProductsRepository bankProductsRepository = new InMemoryBankProductsRepository()
-    private DepositType depositType = new MonthlyDepositType(12, 10.0)
+    private InterestPolicy depositType = new MonthlyInterestPolicy(12, 10.0)
 
     def "when customer has no accounts, empty set is returned"() {
         expect:

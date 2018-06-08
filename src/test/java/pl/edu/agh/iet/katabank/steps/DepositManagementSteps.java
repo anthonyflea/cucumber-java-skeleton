@@ -1,12 +1,17 @@
 package pl.edu.agh.iet.katabank.steps;
 
 import cucumber.api.java8.En;
+import org.assertj.core.data.Offset;
 import pl.edu.agh.iet.katabank.Bank;
 import pl.edu.agh.iet.katabank.Customer;
 import pl.edu.agh.iet.katabank.bankproduct.Account;
 import pl.edu.agh.iet.katabank.bankproduct.Deposit;
-import pl.edu.agh.iet.katabank.bankproduct.deposittype.DepositType;
-import pl.edu.agh.iet.katabank.bankproduct.deposittype.MonthlyDepositType;
+import pl.edu.agh.iet.katabank.bankproduct.amount.DepositPayment;
+import pl.edu.agh.iet.katabank.bankproduct.amount.Payment;
+import pl.edu.agh.iet.katabank.bankproduct.interestpolicy.DepositDurationDetails;
+import pl.edu.agh.iet.katabank.bankproduct.interestpolicy.DepositDurationDetails.DurationType;
+import pl.edu.agh.iet.katabank.bankproduct.interestpolicy.InterestPolicy;
+import pl.edu.agh.iet.katabank.bankproduct.interestpolicy.MonthlyInterestPolicy;
 import pl.edu.agh.iet.katabank.repository.BankProductsRepository;
 import pl.edu.agh.iet.katabank.repository.InMemoryBankProductsRepository;
 
@@ -26,7 +31,8 @@ public class DepositManagementSteps implements En {
     private Set<Deposit> customerDeposits;
     private LocalDate date;
     private BigDecimal amount;
-    private DepositType depositType;
+    private InterestPolicy interestPolicy = new MonthlyInterestPolicy(new BigDecimal(10));
+    DepositDurationDetails durationDetails = new DepositDurationDetails(12, DurationType.MONTHS);
 
     public DepositManagementSteps() {
 
@@ -37,7 +43,7 @@ public class DepositManagementSteps implements En {
         });
 
         Given("^there is a default deposit type$", ()
-                -> depositType = new MonthlyDepositType(12, BigDecimal.ONE));
+                -> interestPolicy = new MonthlyInterestPolicy(new BigDecimal(12)));
 
         Given("^a customer has an account with balance (\\d+)$", (Integer balance) -> {
             account = new Account(customer);
@@ -46,7 +52,8 @@ public class DepositManagementSteps implements En {
         });
 
         When("^he opens a deposit with balance (\\d+)$", (Integer depositBalance) -> {
-            deposit = bank.openDeposit(customer, account, new BigDecimal(depositBalance), depositType);
+            DepositDurationDetails durationDetails = new DepositDurationDetails(12, DurationType.MONTHS);
+            deposit = bank.openDeposit(customer, account, new BigDecimal(depositBalance), durationDetails, interestPolicy);
             bankProductsRepository.addDeposit(deposit);
         });
 
@@ -61,10 +68,11 @@ public class DepositManagementSteps implements En {
 
         Given("^a customer opened a deposit for a period of one year$", () -> {
             account = new Account(customer);
+            bankProductsRepository.addAccount(account);
             amount = new BigDecimal("10");
             account.setBalance(amount);
             date = LocalDate.now();
-            deposit = new Deposit(account, amount, date, depositType);
+            deposit = bank.openDeposit(customer, account, amount, durationDetails, interestPolicy);
         });
 
         When("^one year has passed$", () -> {
@@ -81,15 +89,19 @@ public class DepositManagementSteps implements En {
         });
 
         Given("^bank offers a deposit for a period of (\\d+) months with yearly interest rate (\\d+)%$",
-                (Integer durationInMonths, Integer interestRate)
-                        -> depositType = new MonthlyDepositType(durationInMonths, new BigDecimal(interestRate)));
+                (Integer durationInMonths, Integer interestRate) -> {
+                    interestPolicy = new MonthlyInterestPolicy(new BigDecimal(interestRate));
+                    durationDetails = new DepositDurationDetails(durationInMonths, DurationType.MONTHS);
+
+                });
 
         And("^customer opens that deposit with funds (\\d+)$", (Integer initialBalance) -> {
             amount = new BigDecimal(initialBalance);
             account = new Account(customer);
+            bankProductsRepository.addAccount(account);
             account.setBalance(amount);
             date = LocalDate.now();
-            deposit = new Deposit(account, amount, date, depositType);
+            deposit = bank.openDeposit(customer, account, amount, durationDetails, interestPolicy);
         });
 
         When("^a termination date has passed$", () -> {
@@ -100,6 +112,31 @@ public class DepositManagementSteps implements En {
         Then("^(\\d+) is transferred back to his account$",
                 (Integer newBalance) ->
                         assertThat(account.getBalance()).isEqualByComparingTo(new BigDecimal(newBalance)));
+
+        Given("^there is a customer with a deposit opened$", () -> {
+            account = new Account(customer);
+            account.setBalance(new BigDecimal(100));
+            bankProductsRepository.addAccount(account);
+            DepositDurationDetails depositDurationDetails = new DepositDurationDetails(6, DurationType.MONTHS);
+            InterestPolicy interestPolicy = new MonthlyInterestPolicy(new BigDecimal(10));
+            deposit = bank.openDeposit(customer, account, new BigDecimal(100), depositDurationDetails, interestPolicy);
+            bankProductsRepository.addDeposit(deposit);
+        });
+
+        When("^he transfers new funds to the existing deposit$", () -> {
+            InterestPolicy interestPolicy = new MonthlyInterestPolicy(new BigDecimal(10.5));
+            Payment payment = new DepositPayment(new BigDecimal(100), LocalDate.now().plusMonths(3));
+            deposit.addPayment(payment, interestPolicy);
+        });
+
+        Then("^the interest rate for these funds is 0.5% greater than the original interest rate$", () -> {
+            assertThat(deposit.getInterestRates()).containsExactly(new BigDecimal(10), new BigDecimal(10.5));
+        });
+
+        And("^the interest for this funds is proportional to the deposit time left$", () -> {
+            deposit.closeDeposit(LocalDate.now().plusMonths(6));
+            assertThat(account.getBalance()).isCloseTo(new BigDecimal(207.62), Offset.offset(new BigDecimal(0.1)));
+        });
 
 
     }

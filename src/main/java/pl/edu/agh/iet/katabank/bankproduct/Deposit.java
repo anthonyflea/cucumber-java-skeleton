@@ -1,42 +1,37 @@
 package pl.edu.agh.iet.katabank.bankproduct;
 
 import pl.edu.agh.iet.katabank.Customer;
-import pl.edu.agh.iet.katabank.bankproduct.deposittype.DepositType;
+import pl.edu.agh.iet.katabank.bankproduct.amount.Payment;
+import pl.edu.agh.iet.katabank.bankproduct.interestpolicy.DepositDurationDetails;
+import pl.edu.agh.iet.katabank.bankproduct.interestpolicy.InterestPolicy;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 public class Deposit implements BankProduct {
 
-    private static final String INCORRECT_INITIAL_BALANCE_MESSAGE = "Incorrect initial balance to open deposit: ";
     private static final String CANNOT_CLOSE_ALREADY_CLOSED_DEPOSIT_MESSAGE = "Cannot close already closed deposit";
-    private static final String CANNOT_CLOSE_DEPOSIT_ON_DATE_MESSAGE = "Cannot close deposit on date: ";
 
-    private BigDecimal balance;
+    private Map<Payment, InterestPolicy> payments;
     private Account connectedAccount;
     private final UUID id;
     private final LocalDate openDate;
-    private final DepositType depositType;
+    private final DepositDurationDetails durationDetails;
     private boolean open;
 
-    public Deposit(Account account, BigDecimal initialBalance, DepositType depositType) {
-        this(account, initialBalance, LocalDate.now(), depositType);
-    }
-
-    public Deposit(Account account, BigDecimal initialBalance, LocalDate openDate, DepositType depositType) {
-        try {
-            account.withdraw(initialBalance);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(INCORRECT_INITIAL_BALANCE_MESSAGE + initialBalance, e);
-        }
-
-        this.balance = initialBalance;
-        this.connectedAccount = account;
+    public Deposit(Account connectedAccount, Payment initialPayment, DepositDurationDetails durationDetails, InterestPolicy interestPolicy) {
         this.id = UUID.randomUUID();
-        this.openDate = openDate;
-        this.depositType = depositType;
+        this.payments = new LinkedHashMap<>();
+        this.payments.put(initialPayment, interestPolicy);
+        this.connectedAccount = connectedAccount;
+        this.openDate = initialPayment.getPaymentDate();
+        this.durationDetails = durationDetails;
         this.open = true;
     }
 
@@ -45,27 +40,22 @@ public class Deposit implements BankProduct {
     }
 
     public BigDecimal getBalance() {
-        return this.balance;
+        if (!isOpen()) {
+            return BigDecimal.ZERO;
+        }
+        return payments.keySet().stream().map(Payment::getPaymentAmount).reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
     }
 
     public LocalDate getOpenDate() {
         return this.openDate;
     }
 
-    public DepositType getDepositType() {
-        return this.depositType;
-    }
-
     public boolean isOpen() {
         return this.open;
     }
 
-    public BigDecimal getYearlyInterestRatePercent() {
-        return this.depositType.getYearlyInterestRatePercent();
-    }
-
     public LocalDate getCloseDate() {
-        return getDepositType().calculateCloseDate(this.openDate);
+        return this.durationDetails.calculateCloseDate(this.openDate);
     }
 
     @Override
@@ -86,17 +76,37 @@ public class Deposit implements BankProduct {
         return Objects.hash(id);
     }
 
-    public void closeDeposit(LocalDate date) {
+    public void closeDeposit(final LocalDate date) {
         if (!isOpen()) {
             throw new RuntimeException(CANNOT_CLOSE_ALREADY_CLOSED_DEPOSIT_MESSAGE);
         }
-        if (date == null || date.isBefore(getCloseDate())) {
-            throw new RuntimeException(CANNOT_CLOSE_DEPOSIT_ON_DATE_MESSAGE + date);
-        }
-        BigDecimal closeBalance = this.balance;
-        this.balance = BigDecimal.ZERO;
-        this.connectedAccount.deposit(closeBalance.add(this.depositType.calculateInterest(closeBalance)));
+        BigDecimal closeBalanceWithInterest = calculateWholeBalanceOnClose(date);
+        this.connectedAccount.deposit(closeBalanceWithInterest);
         this.open = false;
     }
 
+    private BigDecimal calculateWholeBalanceOnClose(final LocalDate date) {
+        return payments.entrySet().stream().map(paymentEntry ->
+                calculateBalanceWithInterest(paymentEntry.getKey().getPaymentAmount(), paymentEntry.getValue()
+                        .calculateInterest(paymentEntry.getKey().getPaymentAmount(),
+                                paymentEntry.getKey().getPaymentDate(), date, this.getCloseDate())))
+                .reduce(BigDecimal::add)
+                .orElseThrow(() -> new RuntimeException("Error while counting balance on close."));
+    }
+
+    private BigDecimal calculateBalanceWithInterest(BigDecimal startBalance, BigDecimal interestBalance) {
+        return startBalance.add(interestBalance);
+    }
+
+    public void addPayment(Payment payment, InterestPolicy interestPolicy) {
+        payments.put(payment, interestPolicy);
+    }
+
+    public List<BigDecimal> getInterestRates() {
+        List<BigDecimal> interestRates = new LinkedList<>();
+        for (InterestPolicy policy : payments.values()) {
+            interestRates.add(policy.getYearlyInterestRatePercent());
+        }
+        return interestRates;
+    }
 }

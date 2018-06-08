@@ -1,4 +1,4 @@
-package pl.edu.agh.iet.katabank.bankproduct.deposittype
+package pl.edu.agh.iet.katabank.bankproduct.interestpolicy
 
 import spock.lang.Specification
 
@@ -12,14 +12,14 @@ class MonthlyDepositTypeTest extends Specification {
     private static
     final String ERROR_MESSAGE_DEPOSIT_DURATION = 'Duration for deposit type must be positive. Incorrect value: '
 
-    private DepositType depositType
+    private InterestPolicy depositType
 
     def "close date is calculated correct"() {
         when:
         def duration = 7
         def interestRate = 7.5
         def date = LocalDate.now()
-        depositType = new MonthlyDepositType(duration, interestRate)
+        depositType = new MonthlyInterestPolicy(duration, interestRate)
 
         then:
         assertThat(depositType.calculateCloseDate(date)).isEqualTo(date.plusMonths(7))
@@ -30,7 +30,7 @@ class MonthlyDepositTypeTest extends Specification {
         def duration = 5
         def interestRate = 10.0
         def initialAmount = 100.0
-        depositType = new MonthlyDepositType(duration, interestRate)
+        depositType = new MonthlyInterestPolicy(duration, interestRate)
 
         then:
         assertThat(depositType.calculateInterest(initialAmount))
@@ -42,7 +42,7 @@ class MonthlyDepositTypeTest extends Specification {
         when:
         def duration = -1
         def interestRate = 10.0
-        depositType = new MonthlyDepositType(duration, interestRate)
+        depositType = new MonthlyInterestPolicy(duration, interestRate)
 
         then:
         RuntimeException ex = thrown()
@@ -53,7 +53,7 @@ class MonthlyDepositTypeTest extends Specification {
         when:
         def duration = 0
         def interestRate = 10.0
-        depositType = new MonthlyDepositType(duration, interestRate)
+        depositType = new MonthlyInterestPolicy(duration, interestRate)
 
         then:
         RuntimeException ex = thrown()

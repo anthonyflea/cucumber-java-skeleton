@@ -1,8 +1,8 @@
 package pl.edu.agh.iet.katabank.bankproduct
 
 import pl.edu.agh.iet.katabank.Customer
-import pl.edu.agh.iet.katabank.bankproduct.deposittype.DepositType
-import pl.edu.agh.iet.katabank.bankproduct.deposittype.MonthlyDepositType
+import pl.edu.agh.iet.katabank.bankproduct.interestpolicy.InterestPolicy
+import pl.edu.agh.iet.katabank.bankproduct.interestpolicy.MonthlyInterestPolicy
 import spock.lang.Specification
 
 import java.time.LocalDate
@@ -18,7 +18,7 @@ class DepositTest extends Specification {
     private final Customer customer = new Customer()
     private final Account account = new Account(customer)
     private int durationInMonths = 12
-    private DepositType depositType = new MonthlyDepositType(durationInMonths, 10.0)
+    private InterestPolicy depositType = new MonthlyInterestPolicy(durationInMonths, 10.0)
     private Deposit deposit
     private BigDecimal amount
     private LocalDate openDate
@@ -220,7 +220,7 @@ class DepositTest extends Specification {
         where:
         amount = 10.0
         openDate = LocalDate.now().plusDays(1)
-        depositType = new MonthlyDepositType(6, 5.0)
+        depositType = new MonthlyInterestPolicy(6, 5.0)
     }
 
     def "when deposit created it returns correct deposit type"() {
@@ -233,7 +233,7 @@ class DepositTest extends Specification {
 
         where:
         amount = 10.0
-        depositType = new MonthlyDepositType(6, 5.0)
+        depositType = new MonthlyInterestPolicy(6, 5.0)
     }
 
     def "when deposit created it returns correct interest rate"() {
@@ -246,7 +246,7 @@ class DepositTest extends Specification {
 
         where:
         amount = 10.0
-        depositType = new MonthlyDepositType(6, 5.0)
+        depositType = new MonthlyInterestPolicy(6, 5.0)
     }
 
 }
