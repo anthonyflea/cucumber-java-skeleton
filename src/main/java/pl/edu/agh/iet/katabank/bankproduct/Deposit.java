@@ -17,6 +17,9 @@ import java.util.UUID;
 public class Deposit implements BankProduct {
 
     private static final String CANNOT_CLOSE_ALREADY_CLOSED_DEPOSIT_MESSAGE = "Cannot close already closed deposit";
+    private static final String ERROR_WHILE_COUNTING_BALANCE_ON_CLOSE = "Error while counting balance on close.";
+    private static final String CANNOT_ADD_PAYMENT_TO_CLOSED_DEPOSIT = "Cannot add payment to closed deposit";
+    private static final String PAYMENT_DATE_BEFORE_DEPOSIT_OPEN_DATE = "Payment's date is before deposit open date.";
 
     private Map<Payment, InterestPolicy> payments;
     private Account connectedAccount;
@@ -81,8 +84,12 @@ public class Deposit implements BankProduct {
             throw new RuntimeException(CANNOT_CLOSE_ALREADY_CLOSED_DEPOSIT_MESSAGE);
         }
         BigDecimal closeBalanceWithInterest = calculateWholeBalanceOnClose(date);
-        this.connectedAccount.deposit(closeBalanceWithInterest);
+        depositCloseBalanceWithInterestToConnectedAccount(closeBalanceWithInterest);
         this.open = false;
+    }
+
+    private void depositCloseBalanceWithInterestToConnectedAccount(BigDecimal closeBalanceWithInterest) {
+        this.connectedAccount.deposit(closeBalanceWithInterest);
     }
 
     private BigDecimal calculateWholeBalanceOnClose(final LocalDate date) {
@@ -91,7 +98,7 @@ public class Deposit implements BankProduct {
                         .calculateInterest(paymentEntry.getKey().getPaymentAmount(),
                                 paymentEntry.getKey().getPaymentDate(), date, this.getCloseDate())))
                 .reduce(BigDecimal::add)
-                .orElseThrow(() -> new RuntimeException("Error while counting balance on close."));
+                .orElseThrow(() -> new RuntimeException(ERROR_WHILE_COUNTING_BALANCE_ON_CLOSE));
     }
 
     private BigDecimal calculateBalanceWithInterest(BigDecimal startBalance, BigDecimal interestBalance) {
@@ -99,6 +106,9 @@ public class Deposit implements BankProduct {
     }
 
     public void addPayment(Payment payment, InterestPolicy interestPolicy) {
+        if (!isOpen()) throw new RuntimeException(CANNOT_ADD_PAYMENT_TO_CLOSED_DEPOSIT);
+        if (payment.getPaymentDate().isBefore(this.openDate))
+            throw new RuntimeException(PAYMENT_DATE_BEFORE_DEPOSIT_OPEN_DATE);
         payments.put(payment, interestPolicy);
     }
 

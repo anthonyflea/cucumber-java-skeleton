@@ -16,6 +16,8 @@ import static pl.edu.agh.iet.katabank.bankproduct.interestpolicy.DepositDuration
 class DepositTest extends Specification {
 
     private static final String ERROR_MESSAGE_CLOSE_DEPOSIT_ALREADY_CLOSED = 'Cannot close already closed deposit'
+    private static final String CANNOT_ADD_PAYMENT_TO_CLOSED_DEPOSIT = "Cannot add payment to closed deposit"
+    private static final String PAYMENT_DATE_BEFORE_DEPOSIT_OPEN_DATE = "Payment's date is before deposit open date."
 
     private final Customer customer = new Customer()
     private final Account account = new Account(customer)
@@ -133,5 +135,34 @@ class DepositTest extends Specification {
                 secondInterestPolicy.getYearlyInterestRatePercent())
     }
 
+    def "cannot add payment to closed deposit"() {
+        given:
+        def secondDepositPayment = new DepositPayment(25.0, LocalDate.now().plusMonths(1))
+        def secondInterestPolicy = new MonthlyInterestPolicy(12.0)
+        deposit = new Deposit(account, depositPayment, depositDurationDetails, interestPolicy)
+
+        when:
+        deposit.closeDeposit(LocalDate.now())
+        deposit.addPayment(secondDepositPayment, secondInterestPolicy)
+
+        then:
+        assertThat(deposit.isOpen()).isFalse()
+        RuntimeException ex = thrown()
+        ex.message == CANNOT_ADD_PAYMENT_TO_CLOSED_DEPOSIT
+    }
+
+    def "cannot add payment with date before open deposit date"() {
+        given:
+        def secondDepositPayment = new DepositPayment(amount, LocalDate.now().minusDays(1))
+        def secondInterestPolicy = new MonthlyInterestPolicy(12.0)
+        deposit = new Deposit(account, depositPayment, depositDurationDetails, interestPolicy)
+
+        when:
+        deposit.addPayment(secondDepositPayment, secondInterestPolicy)
+
+        then:
+        RuntimeException ex = thrown()
+        ex.message == PAYMENT_DATE_BEFORE_DEPOSIT_OPEN_DATE
+    }
 
 }
