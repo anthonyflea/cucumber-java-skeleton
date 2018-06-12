@@ -38,7 +38,6 @@ public class DepositManagementSteps implements En {
     private BigDecimal depositedAmount;
     private InterestPolicy interestPolicy;
     private DepositDurationDetails durationDetails;
-    LocalDate withdrawalDate;
 
     public DepositManagementSteps() {
 
@@ -173,7 +172,7 @@ public class DepositManagementSteps implements En {
         });
 
         When("^he decides to do an early withdrawal after (\\d+) days$", (Integer withdrawalAfter) -> {
-            withdrawalDate = date.plusDays(withdrawalAfter);
+            LocalDate withdrawalDate = date.plusDays(withdrawalAfter);
             deposit.closeDeposit(withdrawalDate);
         });
 
