@@ -29,6 +29,6 @@ Feature: Bank Management - Deposit
 
   Scenario: Deposit insurance - cost
     Given there is a customer who is about to open a new deposit of any kind
-    And he decided to add the insurance to the deposit
+    And he decided to add the insurance to the deposit, the deposit cost is 0.05% of thr amount
     When he opens a deposit
     Then the deposited amount is 0.05% lower than the original amount

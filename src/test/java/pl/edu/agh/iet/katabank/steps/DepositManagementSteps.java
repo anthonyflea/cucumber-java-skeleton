@@ -1,5 +1,6 @@
 package pl.edu.agh.iet.katabank.steps;
 
+
 import cucumber.api.java8.En;
 import pl.edu.agh.iet.katabank.Bank;
 import pl.edu.agh.iet.katabank.Customer;
@@ -144,18 +145,15 @@ public class DepositManagementSteps implements En {
             amount = new BigDecimal(1000);
             account.setBalance(amount);
         });
-
-        And("^he decided to add the insurance to the deposit$", () -> {
-            interestPolicy = new DailyInterestPolicyWithInsurance(new BigDecimal(10), new BigDecimal(0.05));
+        And("^he decided to add the insurance to the deposit, the deposit cost is (.+)% of thr amount$", (String insuranceCostPercent) -> {
+            interestPolicy = new DailyInterestPolicyWithInsurance(new BigDecimal(10), new BigDecimal(insuranceCostPercent));
             durationDetails = new DepositDurationDetails(180, DAYS);
         });
-
         When("^he opens a deposit$", () -> {
             deposit = bank.openDeposit(customer, account, amount, durationDetails, interestPolicy);
         });
-
         Then("^the deposited amount is (.+)% lower than the original amount$", (String insuranceCostPercent) -> {
-            assertThat(deposit.getBalance()).isEqualByComparingTo(amount.subtract(amount.multiply(new BigDecimal(insuranceCostPercent).divide(new BigDecimal(100), 10, HALF_DOWN ))));
+            assertThat(deposit.getBalance()).isEqualByComparingTo(amount.subtract(amount.multiply(new BigDecimal(insuranceCostPercent).divide(new BigDecimal(100), 10, HALF_DOWN))));
         });
 
 
