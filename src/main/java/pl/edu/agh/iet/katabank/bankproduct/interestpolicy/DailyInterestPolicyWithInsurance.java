@@ -22,7 +22,7 @@ public class DailyInterestPolicyWithInsurance implements InterestPolicy {
 
     @Override
     public BigDecimal calculateInterest(BigDecimal amount, LocalDate openDate, LocalDate calculationDate, LocalDate plannedTerminationDate) {
-        int depositDuration = getDuration(openDate, plannedTerminationDate.isBefore(calculationDate) ? plannedTerminationDate : calculationDate);
+        int depositDuration = getDuration(openDate, actualClosingDate(plannedTerminationDate, calculationDate));
         return (amount.multiply(calculateInterestRateMultiplier(depositDuration))).setScale(MONEY_SCALE, ROUNDING_MODE);
     }
 
@@ -39,5 +39,9 @@ public class DailyInterestPolicyWithInsurance implements InterestPolicy {
     public BigDecimal preProcessAmount(BigDecimal amount) {
         return amount.subtract(amount.multiply(this.insuranceCostPercent)
                 .divide(ONE_HUNDRED_PERCENT, CALCULATION_SCALE, ROUNDING_MODE));
+    }
+
+    private LocalDate actualClosingDate (LocalDate plannedTerminationDate, LocalDate calculationDate){
+        return plannedTerminationDate.isBefore(calculationDate) ? plannedTerminationDate : calculationDate;
     }
 }
