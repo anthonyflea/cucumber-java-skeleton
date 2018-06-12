@@ -35,6 +35,7 @@ public class DepositManagementSteps implements En {
     private Set<Deposit> customerDeposits;
     private LocalDate date;
     private BigDecimal amount;
+    private BigDecimal depositedAmount;
     private InterestPolicy interestPolicy;
     private DepositDurationDetails durationDetails;
 
@@ -154,6 +155,29 @@ public class DepositManagementSteps implements En {
         });
         Then("^the deposited amount is (.+)% lower than the original amount$", (String insuranceCostPercent) -> {
             assertThat(deposit.getBalance()).isEqualByComparingTo(amount.subtract(amount.multiply(new BigDecimal(insuranceCostPercent).divide(new BigDecimal(100), 10, HALF_DOWN))));
+        });
+
+        Given("^there is a customer with an account with (\\d+) balance$", (Integer balance) -> {
+            amount = new BigDecimal(balance);
+            account.setBalance(amount);
+        });
+
+        And("^he decided to open a deposit with all the money for period of (\\d+) days with interest rate of (\\d+)% and he decided to add the insurance, that costs (.+)% to the deposit$",
+                (Integer periodDays, Integer interestRate, String insuranceCostPercent) -> {
+            date = LocalDate.now();
+            interestPolicy = new DailyInterestPolicyWithInsurance(new BigDecimal(interestRate), new BigDecimal(insuranceCostPercent));
+            durationDetails = new DepositDurationDetails(periodDays, DAYS);
+            deposit = bank.openDeposit(customer, account, amount, durationDetails,interestPolicy);
+            depositedAmount = deposit.getBalance();
+        });
+
+        When("^he decides to do an early withdrawal after (\\d+) days$", (Integer withdrawalAfter) -> {
+            LocalDate withdrawalDate = date.plusDays(withdrawalAfter);
+            deposit.closeDeposit(withdrawalDate);
+        });
+
+        Then("^he does not lose any accumulated interest, and the account balance after closing the deposit is (.+)$", (String finalBalance) -> {
+            assertThat(account.getBalance()).isEqualByComparingTo(finalBalance);
         });
 
 
